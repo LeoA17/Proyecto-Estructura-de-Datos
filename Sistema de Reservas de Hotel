@@ -1,0 +1,287 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stack>
+
+// CLASE DE GESTION DE CLIENTES
+class Cliente {
+public:
+    int id;
+    std::string nombre;
+    std::string email;
+    Cliente(int id, const std::string& nombre, const std::string& email)
+        : id(id), nombre(nombre), email(email) {}
+};
+
+class SistemaClientes {
+private:
+    std::vector<Cliente> clientes;
+    int idCliente = 1;
+
+public:
+    void agregarCliente() {
+        std::string nombre, email;
+        std::cout << "Ingrese el nombre del cliente: ";
+        std::cin.ignore(); // Limpiar buffer de entrada
+        std::getline(std::cin, nombre);
+        std::cout << "Ingrese el email del cliente: ";
+        std::getline(std::cin, email);
+        clientes.push_back(Cliente(idCliente++, nombre, email));
+        std::cout << "Cliente agregado: " << nombre << "\n";
+    }
+
+    void listarClientes() const {
+        if (clientes.empty()) {
+            std::cout << "No hay clientes registrados.\n";
+        } else {
+            std::cout << "Clientes registrados:\n";
+            for (const auto& cliente : clientes) {
+                std::cout << "ID: " << cliente.id << ", Nombre: " << cliente.nombre 
+                          << ", Email: " << cliente.email << "\n";
+            }
+        }
+    }
+
+    void eliminarCliente() {
+        int id;
+        std::cout << "Ingrese el ID del cliente a eliminar: ";
+        std::cin >> id;
+        for (auto it = clientes.begin(); it != clientes.end(); ++it) {
+            if (it->id == id) {
+                std::cout << "Cliente eliminado: " << it->nombre << "\n";
+                clientes.erase(it);
+                return;
+            }
+        }
+        std::cout << "Cliente no encontrado.\n";
+    }
+};
+
+// CLASE DE GESTION DE RESERVAS
+class Reserva {
+public:
+    int id;
+    std::string nombreCliente;
+    int numeroHabitacion;
+
+    Reserva(int id, std::string nombreCliente, int numeroHabitacion) 
+        : id(id), nombreCliente(nombreCliente), numeroHabitacion(numeroHabitacion) {}
+};
+
+class SistemaReservas {
+private:
+    std::stack<Reserva> reservas; // Usamos stack para las reservas
+    int idReserva = 1;
+
+public:
+    void agregarReserva() {
+        std::string nombreCliente;
+        int numeroHabitacion;
+        std::cout << "Ingrese el nombre del cliente: ";
+        std::cin.ignore(); // Limpiar buffer de entrada
+        std::getline(std::cin, nombreCliente);
+        std::cout << "Ingrese el numero de habitacion: ";
+        std::cin >> numeroHabitacion;
+        reservas.push(Reserva(idReserva++, nombreCliente, numeroHabitacion));
+        std::cout << "Reserva agregada para " << nombreCliente << " en la habitacion " << numeroHabitacion << "\n";
+    }
+
+    void listarReservas() const {
+        if (reservas.empty()) {
+            std::cout << "No hay reservas registradas.\n";
+        } else {
+            std::cout << "Reservas registradas (última reserva primero):\n";
+            std::stack<Reserva> reservasTemp = reservas; // Copia de la pila para mostrarla
+            while (!reservasTemp.empty()) {
+                const Reserva& reserva = reservasTemp.top();
+                std::cout << "ID: " << reserva.id << ", Cliente: " << reserva.nombreCliente 
+                          << ", Habitacion: " << reserva.numeroHabitacion << "\n";
+                reservasTemp.pop();
+            }
+        }
+    }
+
+    void eliminarReserva() {
+        if (reservas.empty()) {
+            std::cout << "No hay reservas para eliminar.\n";
+            return;
+        }
+        const Reserva& reserva = reservas.top();
+        std::cout << "Reserva eliminada para " << reserva.nombreCliente << "\n";
+        reservas.pop();
+    }
+};
+
+// CLASE DE GESTION DE SERVICIOS Y CONSULTAS
+class Servicio {
+public:
+    int id;
+    std::string nombre;
+    std::string descripcion;
+    float costo;
+    Servicio* siguiente;
+};
+
+class Consulta {
+public:
+    std::string pregunta;
+    std::string respuesta;
+    Consulta* siguiente;
+};
+
+// Función para agregar un servicio al final de la lista
+void agregarServicio(Servicio*& cabeza, int id, const std::string& nombre, const std::string& descripcion, float costo) {
+    Servicio* nuevoServicio = new Servicio{id, nombre, descripcion, costo, nullptr};
+    if (cabeza == nullptr) {
+        cabeza = nuevoServicio;
+    } else {
+        Servicio* actual = cabeza;
+        while (actual->siguiente != nullptr) {
+            actual = actual->siguiente;
+        }
+        actual->siguiente = nuevoServicio;
+    }
+}
+
+// Función para mostrar todos los servicios disponibles
+void mostrarServicios(const Servicio* cabeza) {
+    const Servicio* actual = cabeza;
+    while (actual != nullptr) {
+        std::cout << actual->id << ": " << actual->nombre << " - $" << actual->costo << "\n";
+        actual = actual->siguiente;
+    }
+}
+
+// Función para mostrar los detalles de un servicio basado en su ID
+void mostrarDetalleServicio(const Servicio* cabeza, int id) {
+    const Servicio* actual = cabeza;
+    while (actual != nullptr) {
+        if (actual->id == id) {
+            std::cout << "\nServicio seleccionado: " << actual->nombre 
+                      << "\nDescripción: " << actual->descripcion 
+                      << "\nCosto: $" << actual->costo << "\n";
+            return;
+        }
+        actual = actual->siguiente;
+    }
+    std::cout << "Servicio no encontrado.\n";
+}
+
+// Funciones para agregar consultas
+void agregarConsulta(Consulta*& cabeza, const std::string& pregunta, const std::string& respuesta) {
+    Consulta* nuevaConsulta = new Consulta{pregunta, respuesta, nullptr};
+    if (!cabeza) {
+        cabeza = nuevaConsulta;
+    } else {
+        Consulta* actual = cabeza;
+        while (actual->siguiente) {
+            actual = actual->siguiente;
+        }
+        actual->siguiente = nuevaConsulta;
+    }
+}
+
+// Función para mostrar consultas
+void mostrarConsultas(const Consulta* cabeza) {
+    int numero = 1;
+    const Consulta* actual = cabeza;
+    while (actual) {
+        std::cout << numero++ << ". " << actual->pregunta << "\n";
+        actual = actual->siguiente;
+    }
+}
+
+// Función para responder a una consulta
+void responderConsulta(const Consulta* cabeza, int numero) {
+    const Consulta* actual = cabeza;
+    int contador = 1;
+    while (actual && contador < numero) {
+        actual = actual->siguiente;
+        contador++;
+    }
+    if (actual) {
+        std::cout << "Respuesta: " << actual->respuesta << "\n";
+    } else {
+        std::cout << "Consulta no encontrada.\n";
+    }
+}
+
+// MENÚ PRINCIPAL
+
+void mostrarMenuPrincipal() {
+    std::cout << "\n--- Menú Principal ---\n";
+    std::cout << "1. Gestion de Clientes\n";
+    std::cout << "2. Gestion de Reservas\n";
+    std::cout << "3. Servicios y Consultas\n";
+    std::cout << "0. Salir\n";
+}
+
+void menuGestionClientes(SistemaClientes& sistemaClientes) {
+    int opcion;
+    do {
+        std::cout << "\n--- Gestion de Clientes ---\n";
+        std::cout << "1. Agregar Cliente\n";
+        std::cout << "2. Listar Clientes\n";
+        std::cout << "3. Eliminar Cliente\n";
+        std::cout << "0. Salir\n";
+        std::cout << "Seleccione una opción: ";
+        std::cin >> opcion;
+
+        switch (opcion) {
+            case 1: sistemaClientes.agregarCliente(); break;
+            case 2: sistemaClientes.listarClientes(); break;
+            case 3: sistemaClientes.eliminarCliente(); break;
+            case 0: std::cout << "Saliendo de Gestion de Clientes...\n"; break;
+            default: std::cout << "Opción no válida.\n"; break;
+        }
+    } while (opcion != 0);
+}
+
+void menuGestionReservas(SistemaReservas& sistemaReservas) {
+    int opcion;
+    do {
+        std::cout << "\n--- Gestion de Reservas ---\n";
+        std::cout << "1. Agregar Reserva\n";
+        std::cout << "2. Listar Reservas\n";
+        std::cout << "3. Eliminar Reserva\n";
+        std::cout << "0. Salir\n";
+        std::cout << "Seleccione una opción: ";
+        std::cin >> opcion;
+
+        switch (opcion) {
+            case 1: sistemaReservas.agregarReserva(); break;
+            case 2: sistemaReservas.listarReservas(); break;
+            case 3: sistemaReservas.eliminarReserva(); break;
+            case 0: std::cout << "Saliendo de Gestion de Reservas...\n"; break;
+            default: std::cout << "Opción no válida.\n"; break;
+        }
+    } while (opcion != 0);
+}
+
+int main() {
+    SistemaClientes sistemaClientes;
+    SistemaReservas sistemaReservas;
+
+    Servicio* servicios = nullptr;
+    Consulta* consultas = nullptr;
+
+    int opcion;
+
+    do {
+        mostrarMenuPrincipal();
+        std::cout << "Seleccione una opción: ";
+        std::cin >> opcion;
+
+        switch (opcion) {
+            case 1: menuGestionClientes(sistemaClientes); break;
+            case 2: menuGestionReservas(sistemaReservas); break;
+            case 3:
+                mostrarServicios(servicios);
+                break;
+            case 0: std::cout << "Saliendo...\n"; break;
+            default: std::cout << "Opción no válida.\n"; break;
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
